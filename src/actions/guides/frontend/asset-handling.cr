@@ -165,7 +165,7 @@ class Guides::Frontend::AssetHandling < GuideAction
     ```crystal
     # In config/server.cr
     Lucky::Server.configure do |settings|
-      if Lucky::Env.production?
+      if LuckyEnv.production?
         settings.asset_host = "https://mycdnhost.com"
       else
         # Serve up assets locally in development and test

@@ -20,19 +20,23 @@ class Guides::GettingStarted::Configuration < GuideAction
 
     ## Get the current environment
 
-    `Lucky::Env.name` will return the currently running environment
+    `LuckyEnv.environment` will return the currently running environment
 
-    You can also conditionally check the environment with `Lucky::Env.test?`,
-    `Lucky::Env.development?`, or `Lucky::Env.production?`
+    You can also conditionally check the environment with `LuckyEnv.development?`,
+    `LuckyEnv.test?`, or `LuckyEnv.production?`
 
     ## Set the current environment
 
-    `LUCKY_ENV=environment_name` to set the environment. By default it is `development`
+    `LUCKY_ENV=environment_name` to set the environment. By default it is `development`.
 
     ## Add custom environment
 
     If you need a custom environment like `staging`, for example, you can add this option in `config/env.cr`.
-    This will give you the helper method `Lucky::Env.staging?` for use in your app.
+    This will give you the helper method `LuckyEnv.staging?` for use in your app.
+
+    ```
+    LuckyEnv.add_env :staging
+    ```
 
     ## Configuring Lucky
 

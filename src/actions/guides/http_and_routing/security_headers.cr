@@ -69,7 +69,7 @@ class Guides::HttpAndRouting::SecurityHeaders < GuideAction
     # config/server.cr
 
     Lucky::ForceSSLHandler.configure do |settings|
-      settings.enabled = Lucky::Env.production?
+      settings.enabled = LuckyEnv.production?
       settings.strict_transport_security = {max_age: 1.year, include_subdomains: true}
     end
     ```

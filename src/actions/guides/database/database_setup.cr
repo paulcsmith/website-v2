@@ -97,7 +97,7 @@ class Guides::Database::DatabaseSetup < GuideAction
     but will not raise an exception in production.
 
     ```crystal
-    settings.lazy_load_enabled = Lucky::Env.production?
+    settings.lazy_load_enabled = LuckyEnv.production?
     ```
 
     ### Apps not using Avram
@@ -121,7 +121,7 @@ class Guides::Database::DatabaseSetup < GuideAction
     ## Test Setup
 
     If you'd like to use separate credentials for your testing database, you can add
-    another conditional in `config/database.cr` that checks for `Lucky::Env.test?` and
+    another conditional in `config/database.cr` that checks for `LuckyEnv.test?` and
     sets the `setting.url` option to the appropriate value.
 
     ## Create and Drop database
