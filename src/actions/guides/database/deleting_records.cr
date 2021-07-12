@@ -13,9 +13,24 @@ class Guides::Database::DeletingRecords < GuideAction
     Similar to the `SaveOperation`, Avram comes with a `DeleteOperation` that's generated with each model.
     This allows you to write more complex logic around deleteing records. (e.g. delete confirmations, etc...)
 
-    ### Setup
+    ### Simple deletes
 
-    These classes go in your `src/operations/` directory, and will inherit from `{ModelName}::DeleteOperation`.
+    If you just want to delete a record without any validations or callbacks, the simplest way is to use the generated `{ModelName}::DeleteOperation`
+
+    For example, if we have a `Server` model, Lucky will generate a `Server::DeleteOperation` that you can use:
+
+    ```crystal
+    server = ServerQuery.find(123)
+    Server::DeleteOperation.destroy!(server)
+    ```
+
+    If the record fails to be deleted, an `Avram::InvalidOperationError` will be raised.
+
+    ### Setting up a custom DeleteOperation
+
+    You can customize DeleteOperations with callbacks and validations.  These
+    classes go in your `src/operations/` directory, and will inherit from
+    `{ModelName}::DeleteOperation`.
 
     ```crystal
     # src/operations/delete_server.cr
@@ -23,10 +38,12 @@ class Guides::Database::DeletingRecords < GuideAction
     end
     ```
 
-    ### Using in actions
+    ### Using a `DeleteOperation` in actions
 
     The interface should feel pretty familiar. The object being deleted is passed in to the `destroy` method, and a block will
     return the operation instance, and the object being deleted.
+
+    > Note: The second block argument (the deleted object) is optional
 
     ```crystal
     # src/actions/servers/delete.cr
@@ -34,12 +51,14 @@ class Guides::Database::DeletingRecords < GuideAction
       delete "/servers/:server_id" do
         server = ServerQuery.find(server_id)
 
-        DeleteServer.destroy(server) do |operation, deleted_server|
+        # The second block argument can be completely removed.
+        # It is shown here with a `_` to show that it can be used if needed.
+        DeleteServer.destroy(server) do |operation, _deleted_server|
           if operation.deleted?
             redirect to: Servers::Index
           else
             flash.danger = "Could not delete"
-            html Servers::EditPage, server: deleted_server
+            html Servers::EditPage, server: server
           end
         end
       end
@@ -59,19 +78,17 @@ class Guides::Database::DeletingRecords < GuideAction
     end
     ```
 
-    ### Bulk delete
+    ### Destroy and raise if it fails
 
-    > Currently bulk deletes with DeleteOperation are not supported.
-
-    If you need to bulk delete a group of records based on a where query, you can use `delete` at the end of your query.
-    This returns the number of records deleted.
+    You can also use the `destroy!` method if you don't need validations and expect delete's to work every time:
 
     ```crystal
-    # DELETE FROM users WHERE banned_at IS NOT NULL
-    UserQuery.new.banned_at.is_not_nil.delete
+    DeleteServer.destroy!(server)
     ```
 
-    ## Callbacks and Validations
+    This is helpful when your operation only has callbacks or needs and is expected to work every time.
+
+    ## `DeleteOperation` Callbacks and Validations
 
     DeleteOperations come with `before_delete` and `after_delete` callbacks that allow you to either validate
     some code before performing the delete, or perform some action after deleteing. (i.e. Send a "Goodbye" email, etc...)
@@ -110,6 +127,18 @@ class Guides::Database::DeletingRecords < GuideAction
         DecryptedServerDataEmail.new(decrypted_server_data).deliver
       end
     end
+    ```
+
+    ### Bulk delete
+
+    > Currently bulk deletes with DeleteOperation are not supported.
+
+    If you need to bulk delete a group of records based on a where query, you can use `delete` at the end of your query.
+    This returns the number of records deleted.
+
+    ```crystal
+    # DELETE FROM users WHERE banned_at IS NOT NULL
+    UserQuery.new.banned_at.is_not_nil.delete
     ```
 
     #{permalink(ANCHOR_SOFT_DELETE)}
