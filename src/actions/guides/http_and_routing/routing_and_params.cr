@@ -247,6 +247,33 @@ class Guides::HttpAndRouting::RoutingAndParams < GuideAction
     end
     ```
 
+    ## Routing style
+
+    By default Lucky ensures that all routes adhere to the same style. All
+    route paths are expected to use underscores unless you opt-out or change
+    the style check. You can opt-out from style checking by including
+    `Lucky::SkipRouteStyleCheck` in your action.
+
+    ```crystal
+    # src/actions/users/show.cr
+    class Users::Show < BrowserAction
+      include Lucky::SkipRouteStyleCheck
+
+      get "/users/user-:some_user_id" do
+        plain_text "Requested user id: \#{some_user_id}"
+      end
+    end
+    ```
+
+    Or, skipping checking altogether by removing
+    `Lucky::EnforceUnderscoredRoute` from `src/actions/browser_action.cr`.
+
+
+    Similarly, a custom style check can be added by adding the
+    `enforce_route_style` macro in your action. Or, for all actions by adding
+    it to `src/actions/browser_action.cr`. See [Lucky::EnforceUnderscoredRoute](https://github.com/luckyframework/lucky/blob/master/src/lucky/enforce_underscored_route.cr)
+    for an example.
+
     ## Memoization
 
     As your application gets larger, you may need to write helper methods that run expensive
