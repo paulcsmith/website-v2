@@ -63,6 +63,37 @@ class Guides::HttpAndRouting::HTTPHandlers < GuideAction
     end
     ```
 
+    ## Conditionally including handlers
+
+    There may be cases where you want a handler to be included only when certain conditions are met.
+    For example, let's say that we want to serve files from our `/tmp` directory in **development and test** environments, but not in production.
+    This can be accomplished with a ternary statement and slight restructure of the `middleware` method in `app_server.cr`:
+
+    ```crystal
+    def middleware : Array(HTTP::Handler)
+      [
+        Lucky::ForceSSLHandler.new,
+        Lucky::HttpMethodOverrideHandler.new,
+        Lucky::LogHandler.new,
+        Lucky::ErrorHandler.new(action: Errors::Show),
+        Lucky::RemoteIpHandler.new,
+        Lucky::RouteHandler.new,
+        Lucky::StaticCompressionHandler.new("./public", file_ext: "br", content_encoding: "br"),
+        Lucky::StaticCompressionHandler.new("./public", file_ext: "gz", content_encoding: "gzip"),
+        Lucky::StaticFileHandler.new("./public", fallthrough: false, directory_listing: false),
+
+        # Here is our new handler, which is `nil` when we're in production,
+        # and a `StaticFileHandler` when we're in other environments.
+        #
+        # To make sure that `middleware` still returns only `HTTP::Handler`s,
+        # we `select(HTTP::Handler)` when returning from this method.
+        LuckyEnv.production? ? nil : Lucky::StaticFileHandler.new("./tmp", fallthrough: false, directory_listing: false),
+
+        Lucky::RouteNotFoundHandler.new,
+      ].select(HTTP::Handler)
+    end
+    ```
+
     ## Creating custom handlers
 
     Your application may have special requirements like routing legacy URLs, sending bug reporting, CORS, or even doing [HTTP Basic auth](https://en.wikipedia.org/wiki/Basic_access_authentication) while your app is in beta.
